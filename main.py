@@ -54,9 +54,13 @@ TOOLS = [
         func=lambda _: get_field_to_table_map(),
         description=(
             "Use this tool if the question involves locating where a specific financial field "
-            "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in our Supabase tables. "
+            "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in Alphavantage APIs. "
             "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
-            "'based on our records'. It returns a dictionary mapping field names to table names."
+            "'based on our records'. It returns a dictionary mapping field names to API type or table names."
+            "ALWAYS follow with:\n"
+            "Action: FieldMapper\n"
+            "Action Input: 'fieldname'\n"
+            "Then use the result to continue tool selection or validation."
         )
     )
 ]
