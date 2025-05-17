@@ -46,15 +46,16 @@ TOOLS = [
         description="Suggest stock symbols based on a high-level strategy like 'undervalued tech stocks'."
     ),
 
-Tool(
-    name="FieldMapper",
-    func=lambda _: get_field_to_table_map(),
-    description=(
-        "Returns a dictionary mapping financial fields (like 'ebitda', 'freecashflow', etc.) "
-        "this helps in figuring out the input to call alphavantage, the right file for the right field"
-        "its better to call this for our data as it gives insight on related table or file for a financial field"
+    Tool(
+        name="FieldMapper",
+        func=lambda _: get_field_to_table_map(),
+        description=(
+            "Use this tool if you're asked where a specific financial field "
+            "(like 'freecashflow', 'ebitda', 'marketcapitalization') is stored in our Supabase data. "
+            "It returns a dictionary mapping fields to table names."
+            "Use this tool before answering any prompt that says 'in our data' or 'from our data'."
+        )
     )
-)
 ]
 
 agent = initialize_agent(
@@ -83,8 +84,10 @@ if __name__ == "__main__":
 
             # Step 2: Route based on LLaMA's output
             if "USE_AGENT" in routing_decision:
+                print("using USE_AGENT")
                 response = agent.run(prompt)
             else:
+                print("not using USE_AGENT")
                 response = llm.invoke(
                     f"You are StockAgent, a financial assistant.\n"
                     f"Answer this using only your own knowledge.\n"
