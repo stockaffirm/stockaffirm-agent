@@ -34,6 +34,7 @@ stockaffirm-agent/
 ### 1. Clone the Repo
 
 ```bash
+ssh root@85.190.254.222
 git clone https://github.com/stockaffirm/stockaffirm-agent.git
 cd stockaffirm-agent
 ```

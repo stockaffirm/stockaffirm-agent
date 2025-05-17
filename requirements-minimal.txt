@@ -5,4 +5,4 @@ supabase
 requests
 python-dotenv
 python-dotenv
-httpx[http2]
+httpx
