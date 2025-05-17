@@ -63,7 +63,13 @@ agent = initialize_agent(
 
 if __name__ == "__main__":
     while True:
-        prompt = input("\nStockAgent > ")
-        if prompt.lower() in ("exit", "quit"): break
-        response = agent.run(prompt)
-        print("\n" + response)
+        try:
+            prompt = input("\nStockAgent > ")
+            if prompt.lower() in ("exit", "quit"):
+                print("Goodbye!")
+                break
+            response = agent.run(prompt)
+            print("\n" + str(response))
+        except Exception as e:
+            print(f"\n⚠️ Agent error: {e}\nRestarting prompt...\n")
+
