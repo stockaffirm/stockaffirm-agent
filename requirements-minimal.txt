@@ -1,0 +1,8 @@
+langchain
+langchain-community
+ollama
+supabase
+requests
+python-dotenv
+python-dotenv
+httpx[http2]
