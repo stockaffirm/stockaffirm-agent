@@ -24,6 +24,7 @@ TOOLS = [
         description=(
             "Fetch Alpha Vantage financial data for a company using a symbol and report type. "
             "MUST check OVERVIEW first in case of any doubts and no specificality in input function"
+            "The output received should be interpreted. Field names will not be exact but financial acumen be used"
             "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
             "- 'AAPL OVERVIEW'\n"
             "- 'AMD INCOME_STATEMENT'\n"
@@ -59,6 +60,7 @@ TOOLS = [
             "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in Alphavantage APIs. "
             "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
             "'based on our records'. It returns a dictionary mapping field names to API type or table names."
+            "The output received should be interpreted. Field names will not be exact but financial acumen be used"
             "ALWAYS follow with:\n"
             "Action: FieldMapper\n"
             "Action Input: 'fieldname'\n"
