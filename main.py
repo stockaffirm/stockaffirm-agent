@@ -3,6 +3,7 @@ load_dotenv()
 
 from langchain_community.llms import Ollama
 from langchain.agents import initialize_agent, Tool
+from langchain.memory import ConversationBufferMemory
 from tools.supabase_tool import query_supabase
 from tools.logic_tool import evaluate_buyability
 from tools.script_describer import describe_script
@@ -13,13 +14,16 @@ from tools.field_mapper import get_field_to_table_map
 
 llm = Ollama(model="llama3")
 
+# 🧠 Session memory (persists until restart or cleared)
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
 TOOLS = [
     Tool(
         name="FetchAlphaData",
         func=fetch_alpha_data,
         description=(
             "Fetch financial data for a public company. Accepts prompts like: \n"
-            "- 'Show Apple\'s balance sheet' → AAPL BALANCE_SHEET\n"
+            "- 'Show Apple's balance sheet' → AAPL BALANCE_SHEET\n"
             "- 'Get income statement for Microsoft' → MSFT INCOME_STATEMENT\n"
             "- 'Overview of Tesla' → TSLA OVERVIEW\n"
             "Maps company names to known stock tickers using internal logic."
@@ -45,7 +49,6 @@ TOOLS = [
         func=suggest_stocks_by_strategy,
         description="Suggest stock symbols based on a high-level strategy like 'undervalued tech stocks'."
     ),
-
     Tool(
         name="FieldMapper",
         func=lambda _: get_field_to_table_map(),
@@ -63,7 +66,8 @@ agent = initialize_agent(
     llm=llm,
     agent="zero-shot-react-description",
     verbose=True,
-    handle_parsing_errors=True
+    handle_parsing_errors=True,
+    memory=memory  # 🧠 Add memory support
 )
 
 if __name__ == "__main__":
@@ -74,10 +78,16 @@ if __name__ == "__main__":
                 print("Goodbye!")
                 break
 
+            if prompt.lower() in ("clear memory", "reset memory"):
+                memory.clear()
+                print("🧠 Memory cleared.")
+                continue
+
             # Step 1: Ask LLaMA to classify intent
             routing_decision = llm.invoke(
                 f"You are StockAgent. Interpret the user question below.\n"
-                f"If the user is requesting data from Supabase or Alpha Vantage or our data (e.g. 'in our data', 'validate', 'check from our database'), respond only with: USE_AGENT.\n"
+                f"If the user is requesting data from Supabase or Alpha Vantage or our data "
+                f"(e.g. 'in our data', 'validate', 'check from our database'), respond only with: USE_AGENT.\n"
                 f"If the user just wants general financial knowledge, respond only with: USE_LLM.\n\n"
                 f"User: {prompt}"
             ).strip().upper()
@@ -98,4 +108,4 @@ if __name__ == "__main__":
             print("\n" + str(response))
 
         except Exception as e:
-            print(f"\n\u26a0\ufe0f Agent error: {e}\nRestarting prompt...\n")
+            print(f"\n⚠️ Agent error: {e}\nRestarting prompt...\n")
