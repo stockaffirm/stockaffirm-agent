@@ -62,17 +62,23 @@ if __name__ == "__main__":
                 print("Goodbye!")
                 break
 
-            # If user says "check in our data" or similar, use tools
-            if any(phrase in prompt.lower() for phrase in ["check in our data", "verify", "supabase", "runmanual", "manually validate", "fetch alpha", "use our data"]):
+            # Step 1: Ask LLaMA to classify intent
+            routing_decision = llm.invoke(
+                f"You are StockAgent. Interpret the user question below.\n"
+                f"If the user is requesting data from Supabase or Alpha Vantage, respond only with: USE_AGENT.\n"
+                f"If the user just wants general financial knowledge, respond only with: USE_LLM.\n\n"
+                f"User: {prompt}"
+            ).strip().upper()
+
+            # Step 2: Route based on LLaMA's output
+            if "USE_AGENT" in routing_decision:
                 response = agent.run(prompt)
             else:
-                # Let LLaMA answer naturally and clearly state its source
                 response = llm.invoke(
-                    f"You are StockAgent, a financial assistant. "
-                    f"Answer the following question using only your pre-trained knowledge. "
-                    f"DO NOT use Supabase, Alpha Vantage, or internal tools. "
-                    f"If this answer is not verified from live data, state that clearly.\n\n"
-                    f"Question: {prompt}"
+                    f"You are StockAgent, a financial assistant.\n"
+                    f"Answer this using only your own knowledge.\n"
+                    f"Clearly say this is not verified using Supabase or Alpha Vantage if applicable.\n\n"
+                    f"{prompt}"
                 )
 
             print("\n" + str(response))
