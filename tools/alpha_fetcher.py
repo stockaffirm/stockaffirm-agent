@@ -1,4 +1,5 @@
 import requests
+import json
 from typing import Union, Tuple
 
 
@@ -43,7 +44,17 @@ def fetch_alpha_data(query: str) -> str:
         }
         response = requests.get(BASE_URL, params=params)
         response.raise_for_status()
-        return str(response.json())
+        # ✅ Option 1: extract key fields and return summary
+        data = response.json()
+
+        summary_fields = [
+            "Symbol", "Name", "Sector", "Industry",
+            "PERatio", "PEGRatio", "MarketCapitalization", "DividendYield"
+        ]
+
+        summary = {k: data.get(k, "N/A") for k in summary_fields}
+        return json.dumps(summary, indent=2)
+
     except Exception as e:
         return f"Alpha Vantage error: {e}"
 
