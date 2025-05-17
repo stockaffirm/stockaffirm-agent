@@ -2,9 +2,9 @@ import requests
 import json
 from typing import Union, Tuple
 
-
 API_KEY = "SD2BHB9D9ARCGK44"
 BASE_URL = "https://www.alphavantage.co/query"
+
 
 def map_natural_to_function(query: str) -> Union[Tuple[str, str], str]:
     """Maps human prompt like 'Show cash flow for AMD' to (symbol, function)"""
@@ -29,10 +29,7 @@ def map_natural_to_function(query: str) -> Union[Tuple[str, str], str]:
         return "Could not find stock symbol."
 
     return symbol, function
-import requests
 
-API_KEY = "SD2BHB9D9ARCGK44"
-BASE_URL = "https://www.alphavantage.co/query"
 
 def fetch_alpha_data(query: str) -> str:
     try:
@@ -41,12 +38,14 @@ def fetch_alpha_data(query: str) -> str:
             return "❌ Invalid input format. Please use: '<SYMBOL> <FUNCTION>' (e.g., 'AAPL OVERVIEW')."
 
         symbol, function = tokens
-        function = function.upper()
+        symbol = symbol.strip().upper()
+        function = function.strip().upper().replace("'", "").replace('"', "")
 
-        if function not in {"OVERVIEW", "INCOME_STATEMENT", "BALANCE_SHEET", "CASH_FLOW"}:
+        valid_functions = {"OVERVIEW", "INCOME_STATEMENT", "BALANCE_SHEET", "CASH_FLOW"}
+        if function not in valid_functions:
             return (
                 f"❌ '{function}' is not a valid Alpha Vantage function.\n"
-                f"Choose one of: OVERVIEW, INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW."
+                f"Choose one of: {', '.join(valid_functions)}."
             )
 
         params = {
@@ -57,13 +56,13 @@ def fetch_alpha_data(query: str) -> str:
 
         response = requests.get(BASE_URL, params=params)
         response.raise_for_status()
-
         data = response.json()
 
-        # Try to summarize important values for overview
+        # Format a summary for OVERVIEW
         if function == "OVERVIEW":
             summary_keys = [
-                "Name", "Symbol", "Sector", "Industry", "MarketCapitalization", "PERatio", "PEGRatio", "DividendYield"
+                "Name", "Symbol", "Sector", "Industry",
+                "MarketCapitalization", "PERatio", "PEGRatio", "DividendYield"
             ]
             summary = {k: data.get(k, "N/A") for k in summary_keys}
             return "\n".join([f"{k}: {v}" for k, v in summary.items()])
