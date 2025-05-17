@@ -51,7 +51,7 @@ Tool(
     func=lambda _: get_field_to_table_map(),
     description=(
         "Returns a dictionary mapping financial fields (like 'ebitda', 'freecashflow', etc.) "
-        "to the Supabase table they come from. Useful when deciding which table to query for a field."
+        "this helps in figuring out the input to call alphavantage, the right file for the right field"
     )
 )
 ]
