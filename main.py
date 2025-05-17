@@ -77,7 +77,7 @@ if __name__ == "__main__":
             # Step 1: Ask LLaMA to classify intent
             routing_decision = llm.invoke(
                 f"You are StockAgent. Interpret the user question below.\n"
-                f"If the user is requesting data from Supabase or Alpha Vantage, respond only with: USE_AGENT.\n"
+                f"If the user is requesting data from Supabase or Alpha Vantage or our data (e.g. 'in our data', 'validate', 'check from our database'), respond only with: USE_AGENT.\n"
                 f"If the user just wants general financial knowledge, respond only with: USE_LLM.\n\n"
                 f"User: {prompt}"
             ).strip().upper()
