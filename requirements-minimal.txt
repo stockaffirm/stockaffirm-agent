@@ -4,5 +4,4 @@ ollama
 supabase
 requests
 python-dotenv
-python-dotenv
 httpx==0.27.0
