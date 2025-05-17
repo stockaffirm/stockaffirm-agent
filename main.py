@@ -22,12 +22,13 @@ TOOLS = [
         name="FetchAlphaData",
         func=fetch_alpha_data,
         description=(
-            "Fetch financial data for a public company. Accepts prompts like: \n"
-            "- 'Show Apple's balance sheet' → AAPL BALANCE_SHEET\n"
-            "- 'Get income statement for Microsoft' → MSFT INCOME_STATEMENT\n"
-            "- 'Overview of Tesla' → TSLA OVERVIEW\n"
-            "Maps company names to known stock tickers using internal logic."
-        ),
+            "Fetch Alpha Vantage financial data for a company using a symbol and report type. "
+            "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
+            "- 'AAPL OVERVIEW'\n"
+            "- 'AMD INCOME_STATEMENT'\n"
+            "- 'TSLA CASH_FLOW'\n"
+            "Do NOT call this tool without specifying both a symbol and one of: OVERVIEW, INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW."
+        )
     ),
     Tool(
         name="RunManualCheck",
