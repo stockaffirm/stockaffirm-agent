@@ -1,20 +1,44 @@
 import requests
+from typing import Union, Tuple
+
 
 API_KEY = "SD2BHB9D9ARCGK44"
 BASE_URL = "https://www.alphavantage.co/query"
 
-def fetch_alpha_data(symbol_and_type: str) -> str:
-    """
-    Input should be: 'AMD OVERVIEW' or 'MSFT INCOME_STATEMENT'
-    """
+def map_natural_to_function(query: str) -> Union[Tuple[str, str], str]:
+    """Maps human prompt like 'Show cash flow for AMD' to (symbol, function)"""
+    query = query.lower()
+
+    # Function mapping
+    if "balance" in query:
+        function = "BALANCE_SHEET"
+    elif "income" in query:
+        function = "INCOME_STATEMENT"
+    elif "cash" in query:
+        function = "CASH_FLOW"
+    elif "overview" in query or "info" in query:
+        function = "OVERVIEW"
+    else:
+        return "Could not determine financial function (overview, balance, income, cash)."
+
+    # Symbol extraction (very basic)
+    words = query.split()
+    symbol = next((word.upper() for word in words if len(word) <= 5 and word.isalpha()), None)
+    if not symbol:
+        return "Could not find stock symbol."
+
+    return symbol, function
+
+def fetch_alpha_data(query: str) -> str:
     try:
-        parts = symbol_and_type.strip().split()
-        if len(parts) != 2:
-            return "Please format as: SYMBOL FUNCTION (e.g., AMD OVERVIEW)"
-        symbol, function = parts
+        result = map_natural_to_function(query)
+        if isinstance(result, str):
+            return result  # error string
+        symbol, function = result
+
         params = {
-            "function": function.upper(),
-            "symbol": symbol.upper(),
+            "function": function,
+            "symbol": symbol,
             "apikey": API_KEY
         }
         response = requests.get(BASE_URL, params=params)
@@ -22,6 +46,7 @@ def fetch_alpha_data(symbol_and_type: str) -> str:
         return str(response.json())
     except Exception as e:
         return f"Alpha Vantage error: {e}"
+
 
 if __name__ == "__main__":
     print(fetch_alpha_data("AMD OVERVIEW"))

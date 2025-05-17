@@ -49,7 +49,12 @@ TOOLS = [
     Tool(
         name="FetchAlphaData",
         func=fetch_alpha_data,
-        description="Fetch Alpha Vantage data. Format: SYMBOL FUNCTION (e.g. AMD OVERVIEW or NVDA CASH_FLOW)"
+        description=(
+            "Fetch financial data for a stock using natural prompts like:\n"
+            "- Show Apple’s balance sheet\n"
+            "- Get income statement for MSFT\n"
+            "- Pull cash flow for AMD"
+        )
     )
 
 ]
