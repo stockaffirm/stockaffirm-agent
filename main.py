@@ -9,6 +9,7 @@ from tools.script_describer import describe_script
 from tools.tester_tool import run_manual_check
 from tools.stock_picker import suggest_stocks_by_strategy
 from tools.alpha_fetcher import fetch_alpha_data
+from tools.field_mapper import get_field_to_table_map
 
 llm = Ollama(model="llama3")
 
@@ -43,7 +44,16 @@ TOOLS = [
         name="SuggestStocksByStrategy",
         func=suggest_stocks_by_strategy,
         description="Suggest stock symbols based on a high-level strategy like 'undervalued tech stocks'."
+    ),
+
+Tool(
+    name="FieldMapper",
+    func=lambda _: get_field_to_table_map(),
+    description=(
+        "Returns a dictionary mapping financial fields (like 'ebitda', 'freecashflow', etc.) "
+        "to the Supabase table they come from. Useful when deciding which table to query for a field."
     )
+)
 ]
 
 agent = initialize_agent(
