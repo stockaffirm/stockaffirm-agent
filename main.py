@@ -52,6 +52,7 @@ Tool(
     description=(
         "Returns a dictionary mapping financial fields (like 'ebitda', 'freecashflow', etc.) "
         "this helps in figuring out the input to call alphavantage, the right file for the right field"
+        "its better to call this for our data as it gives insight on related table or file for a financial field"
     )
 )
 ]
