@@ -30,7 +30,7 @@ TOOLS = [
         func=fetch_alpha_data,
         description=(
             "Fetch Alpha Vantage financial data for a company using a symbol"
-            "MUST check OVERVIEW first in case of any doubts and no specifically in input function"
+            "MUST check OVERVIEW first in case of to know specifically in which FUNCTION is the field"
             "The output received should be interpreted. Field names will not be exact but financial acumen be used"
             "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
             "- 'AAPL OVERVIEW'\n"
@@ -64,6 +64,7 @@ TOOLS = [
         func=lambda _: get_field_to_table_map(),
         description=(
             "Use this tool if the question involves locating where a specific financial field "
+            "If you already located the field in Alphavantage, do not call this tool"
             "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in Alphavantage APIs. "
             "This tool would suffice the requirement to check where a field existing in alphavantage or API"
             "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
