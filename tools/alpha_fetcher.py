@@ -35,7 +35,7 @@ def fetch_alpha_data(query: str) -> str:
     try:
         tokens = query.strip().split()
         if len(tokens) != 2:
-            return "❌ Invalid input format. Use: '<SYMBOL> <FUNCTION>' (e.g., 'AAPL OVERVIEW')."
+            return f"❌ Invalid input format. You called with {query}. The length of token is {len(tokens)} while we are looking for 2. Use: '<SYMBOL> <FUNCTION>' (e.g., 'AAPL OVERVIEW')."
 
         symbol, function = tokens
         symbol = symbol.strip().upper().replace("'", "").replace('"', "")
@@ -75,4 +75,4 @@ def fetch_alpha_data(query: str) -> str:
 
 
 if __name__ == "__main__":
-    print(fetch_alpha_data("AMD OVERVIEW"))
+    print(fetch_alpha_data("AMD CASH_FLOW"))
