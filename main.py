@@ -25,12 +25,58 @@ llm = Ollama(model="llama3")
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 TOOLS = [
-    Tool("FetchAlphaData", fetch_alpha_data, "Fetch financials via Alpha Vantage."),
-    Tool("RunManualCheck", run_manual_check, "Check if a field is correctly calculated in Supabase."),
-    Tool("EvaluateBuyability", evaluate_buyability, "Apply stock selection rules."),
-    Tool("DescribeScript", describe_script, "Explain Python script logic."),
-    Tool("SuggestStocksByStrategy", suggest_stocks_by_strategy, "Suggest stocks based on strategy."),
-    Tool("FieldMapper", lambda _: get_field_to_table_map(), "Map fields to data tables or APIs.")
+    Tool(
+        name="FetchAlphaData",
+        func=fetch_alpha_data,
+        description=(
+            "Fetch Alpha Vantage financial data for a company using a symbol and report type. "
+            "MUST use this only if value is needed, not to verify if a field or attribute exist in a file, table or function"
+            "MUST check OVERVIEW first in case of any doubts and no specifically in input function"
+            "The output received should be interpreted. Field names will not be exact but financial acumen be used"
+            "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
+            "- 'AAPL OVERVIEW'\n"
+            "- 'AMD INCOME_STATEMENT'\n"
+            "- 'TSLA CASH_FLOW'\n"
+            "Do NOT call this tool without specifying both a symbol and one of: OVERVIEW, INCOME_STATEMENT, BALANCE_SHEET, CASH_FLOW."
+        )
+    ),
+    Tool(
+        name="RunManualCheck",
+        func=run_manual_check,
+        description="Check if a specific field (like ebitda_1) for a stock symbol (e.g. AMD) in a Supabase table is correctly populated. Format: Check <field> for <symbol> in <table>.",
+    ),
+    Tool(
+        name="EvaluateBuyability",
+        func=evaluate_buyability,
+        description="Evaluate whether a stock is buyable based on symbol."
+    ),
+    Tool(
+        name="DescribeScript",
+        func=describe_script,
+        description="Explain what a Python script does. Paste script as input."
+    ),
+    Tool(
+        name="SuggestStocksByStrategy",
+        func=suggest_stocks_by_strategy,
+        description="Suggest stock symbols based on a high-level strategy like 'undervalued tech stocks'."
+    ),
+    Tool(
+        name="FieldMapper",
+        func=lambda _: get_field_to_table_map(),
+        description=(
+            "Use this tool if the question involves locating where a specific financial field "
+            "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in Alphavantage APIs. "
+            "This tool would suffice the requirement to check where a field existing in alphavantage or API"
+            "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
+            "'based on our records'. It returns a dictionary mapping field names to API type or table names."
+            "The output received should be interpreted. Field names will not be exact but financial acumen be used"
+            "match the input or field requested to the closest in the output of this tool"
+            "ALWAYS follow with:\n"
+            "Action: FieldMapper\n"
+            "Action Input: 'fieldname'\n"
+            "Then use the result to continue tool selection or validation."
+        )
+    )
 ]
 
 agent = initialize_agent(
@@ -51,6 +97,7 @@ def route_prompt(prompt: str) -> str:
     routing_decision = llm.invoke(
         f"You are StockAgent. Interpret the user question below.\n"
         f"If the user is requesting data from Supabase or Alpha Vantage or our data, respond only with: USE_AGENT.\n"
+        f"you have to interpret each input and use your financial wisdom and reach out to the agents with proper information."
         f"If it's general financial knowledge, respond only with: USE_LLM.\n\n"
         f"User: {prompt}"
     ).strip().upper()
