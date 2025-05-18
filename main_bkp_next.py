@@ -12,13 +12,9 @@ from tools.stock_picker import suggest_stocks_by_strategy
 from tools.alpha_fetcher import fetch_alpha_data
 from tools.field_mapper import get_field_to_table_map
 
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
-
 llm = Ollama(model="llama3")
 
+# 🧠 Session memory (persists until restart or cleared)
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 TOOLS = [
@@ -81,9 +77,50 @@ agent = initialize_agent(
     agent="zero-shot-react-description",
     verbose=True,
     handle_parsing_errors=True,
-    memory=memory
+    memory=memory  # 🧠 Add memory support
 )
 
+if __name__ == "__main__":
+    while True:
+        try:
+            prompt = input("\nStockAgent > ")
+            if prompt.lower() in ("exit", "quit"):
+                print("Goodbye!")
+                break
+
+            if prompt.lower() in ("clear memory", "reset memory"):
+                memory.clear()
+                print("🧠 Memory cleared.")
+                continue
+
+            # Step 1: Ask LLaMA to classify intent
+            routing_decision = llm.invoke(
+                f"You are StockAgent. Interpret the user question below.\n"
+                f"If the user is requesting data from Supabase or Alpha Vantage or our data "
+                f"(e.g. 'in our data', 'validate', 'check from our database'), respond only with: USE_AGENT.\n"
+                f"If the user just wants general financial knowledge, respond only with: USE_LLM.\n\n"
+                f"User: {prompt}"
+            ).strip().upper()
+
+            # Step 2: Route based on LLaMA's output
+            if "USE_AGENT" in routing_decision:
+                print("using USE_AGENT")
+                response = agent.run(prompt)
+            else:
+                print("not using USE_AGENT")
+                response = llm.invoke(
+                    f"You are StockAgent, a financial assistant.\n"
+                    f"Answer this using only your own knowledge.\n"
+                    f"Clearly say this is not verified using Supabase or Alpha Vantage if applicable.\n\n"
+                    f"{prompt}"
+                )
+
+            print("\n" + str(response))
+
+        except Exception as e:
+            print(f"\n⚠️ Agent error: {e}\nRestarting prompt...\n")
+
+# === Shared Routing Function (used by API too) ===
 def route_prompt(prompt: str) -> str:
     prompt = prompt.strip()
     if prompt.lower() in ("clear memory", "reset memory"):
@@ -110,78 +147,27 @@ Clearly say this is not verified using Supabase or Alpha Vantage if applicable.
 {prompt}"""
         )
 
-# === FastAPI App ===
-app = FastAPI()
+# === Optional FastAPI App ===
+try:
+    from fastapi import FastAPI
+    from pydantic import BaseModel
+    from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    app = FastAPI()
 
-class ChatRequest(BaseModel):
-    prompt: str
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-@app.post("/chat")
-async def chat(request: Request):
-    if request.headers.get("content-type") == "application/json":
-        body = await request.json()
-        prompt = body["prompt"]
-    else:
-        form = await request.form()
-        prompt = form["prompt"]
-    return {"response": route_prompt(prompt)}
+    class ChatRequest(BaseModel):
+        prompt: str
 
-@app.get("/chat", response_class=HTMLResponse)
-async def chat_form():
-    return """
-    <html>
-        <head><title>StockAffirm Chat</title></head>
-        <body style="font-family: sans-serif; padding: 2rem;">
-            <h2>🧠 StockAffirm Agent</h2>
-            <form method="post" action="/chat">
-                <input type="text" name="prompt" style="width: 60%; padding: 0.5rem;" placeholder="Ask a question..." />
-                <button type="submit" style="padding: 0.5rem 1rem;">Submit</button>
-            </form>
-        </body>
-    </html>
-    """
+    @app.post("/chat")
+    async def chat(request: ChatRequest):
+        return {"response": route_prompt(request.prompt)}
 
-if __name__ == "__main__":
-    while True:
-        try:
-            prompt = input("\nStockAgent > ")
-            if prompt.lower() in ("exit", "quit"):
-                print("Goodbye!")
-                break
-
-            if prompt.lower() in ("clear memory", "reset memory"):
-                memory.clear()
-                print("🧠 Memory cleared.")
-                continue
-
-            routing_decision = llm.invoke(
-                f"You are StockAgent. Interpret the user question below.\n"
-                f"If the user is requesting data from Supabase or Alpha Vantage or our data "
-                f"(e.g. 'in our data', 'validate', 'check from our database'), respond only with: USE_AGENT.\n"
-                f"If the user just wants general financial knowledge, respond only with: USE_LLM.\n\n"
-                f"User: {prompt}"
-            ).strip().upper()
-
-            if "USE_AGENT" in routing_decision:
-                print("using USE_AGENT")
-                response = agent.run(prompt)
-            else:
-                print("not using USE_AGENT")
-                response = llm.invoke(
-                    f"You are StockAgent, a financial assistant.\n"
-                    f"Answer this using only your own knowledge.\n"
-                    f"Clearly say this is not verified using Supabase or Alpha Vantage if applicable.\n\n"
-                    f"{prompt}"
-                )
-
-            print("\n" + str(response))
-
-        except Exception as e:
-            print(f"\n⚠️ Agent error: {e}\nRestarting prompt...\n")
+except ImportError:
+    app = None  # FastAPI is optional; ignore if not installed
