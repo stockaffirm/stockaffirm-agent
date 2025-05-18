@@ -23,8 +23,8 @@ TOOLS = [
         func=fetch_alpha_data,
         description=(
             "Fetch Alpha Vantage financial data for a company using a symbol and report type. "
-            "MUST use this only if value is needed, not to verify if a field or atrribute exist in a file, table or function"
-            "MUST check OVERVIEW first in case of any doubts and no specificality in input function"
+            "MUST use this only if value is needed, not to verify if a field or attribute exist in a file, table or function"
+            "MUST check OVERVIEW first in case of any doubts and no specifically in input function"
             "The output received should be interpreted. Field names will not be exact but financial acumen be used"
             "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
             "- 'AAPL OVERVIEW'\n"
@@ -59,6 +59,7 @@ TOOLS = [
         description=(
             "Use this tool if the question involves locating where a specific financial field "
             "(e.g., 'freecashflow', 'ebitda', 'marketcapitalization') is stored in Alphavantage APIs. "
+            "This tool would suffice the requirement to check where a field existing in alphavantage or API"
             "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
             "'based on our records'. It returns a dictionary mapping field names to API type or table names."
             "The output received should be interpreted. Field names will not be exact but financial acumen be used"
