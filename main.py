@@ -97,6 +97,7 @@ def route_prompt(prompt: str) -> str:
 
     routing_decision = llm.invoke(
         f"You are StockAgent. Interpret the user question below.\n"
+        "If you get questions about financial health but are asked based on our data, respond only with USE_AGENT but interpret the question and use your financial knowledge on how best it can be determined."
         f"If the user is requesting data from Supabase or Alpha Vantage or our data, respond only with: USE_AGENT.\n"
         f"you have to interpret each input and use your financial wisdom and reach out to the agents with proper information."
         f"If it's general financial knowledge, respond only with: USE_LLM.\n\n"
