@@ -148,6 +148,17 @@ async def chat_form():
         </body>
     </html>
     """
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <head><title>StockAffirm Agent</title></head>
+        <body style="font-family: sans-serif; padding: 2rem;">
+            <h2>🚀 Welcome to StockAffirm Agent</h2>
+            <p>Visit <a href="/chat">/chat</a> to interact with the agent.</p>
+        </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     while True:
