@@ -16,9 +16,10 @@ from tools.alpha_fetcher import fetch_alpha_data
 from tools.field_mapper import get_field_to_table_map
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from typing import AsyncGenerator
+import asyncio
 
 llm = Ollama(model="llama3")
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -66,56 +67,65 @@ def route_prompt(prompt: str) -> str:
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-class ChatRequest(BaseModel):
-    prompt: str
-
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    return '''
+    return HTMLResponse(content="""
     <html><head><title>StockAffirm Agent</title></head>
     <body style="font-family:sans-serif;padding:2rem;">
         <h2>Welcome to StockAffirm Agent</h2>
         <p>Visit <a href='/chat'>/chat</a> to interact.</p>
     </body></html>
-    '''
+    """)
 
 @app.get("/chat", response_class=HTMLResponse)
 async def chat_form():
-    return '''
-    <html><head><title>Chat</title></head>
+    return HTMLResponse(content="""
+    <html>
+    <head>
+      <title>Chat</title>
+      <script>
+        function showLoading() {
+          document.getElementById("status").innerText = "🧠 Checking... please wait";
+        }
+      </script>
+    </head>
     <body style="font-family:sans-serif;padding:2rem;">
         <h2>StockAffirm Agent</h2>
-        <form method="post" action="/chat">
+        <form method="post" action="/chat" onsubmit="showLoading()">
             <input type="text" name="prompt" style="width:60%;padding:0.5rem;" placeholder="Ask a question..." />
             <button type="submit" style="padding:0.5rem 1rem;">Submit</button>
         </form>
-    </body></html>
-    '''
+        <p id="status" style="margin-top:1rem;font-style:italic;"></p>
+    </body>
+    </html>
+    """)
 
-@app.post("/chat")
-async def chat(request: Request):
-    try:
-        if request.headers.get("content-type") == "application/json":
-            body = await request.json()
-            prompt = body.get("prompt", "")
-        else:
-            form = await request.form()
-            prompt = form.get("prompt", "")
-        result = route_prompt(prompt)
-        if request.headers.get("content-type") == "application/json":
-            return JSONResponse(content={"response": result})
-        return HTMLResponse(content=f'''
-        <html><body style="font-family:sans-serif;padding:2rem;">
-            <h2>StockAffirm Agent</h2>
-            <form method="post" action="/chat">
-                <input type="text" name="prompt" value="{prompt}" style="width:60%;padding:0.5rem;" />
-                <button type="submit" style="padding:0.5rem 1rem;">Submit</button>
-            </form>
-            <hr/><h3>Response:</h3><pre style="white-space:pre-wrap;background:#f4f4f4;padding:1rem;">{result}</pre>
-        </body></html>
-        ''')
-    except Exception as e:
-        return HTMLResponse(content=f"<h3>Error: {str(e)}</h3>", status_code=500)
+@app.post("/chat", response_class=StreamingResponse)
+async def stream_chat(request: Request):
+    form = await request.form()
+    prompt = form.get("prompt", "")
+
+    async def stream_response() -> AsyncGenerator[bytes, None]:
+        yield b"<html><body style='font-family:sans-serif;padding:2rem;'>"
+        yield f"<h2>StockAffirm Agent</h2><p><b>Prompt:</b> {prompt}</p>".encode()
+        yield b"<p><b>Response:</b><pre style='white-space:pre-wrap;background:#f4f4f4;padding:1rem;'>"
+
+        try:
+            yield b"Checking...\n"
+            for _ in range(3):
+                await asyncio.sleep(5)
+                yield b"Still checking...\n"
+
+            result = route_prompt(prompt)
+            for line in result.splitlines():
+                yield (line + "\n").encode()
+                await asyncio.sleep(0.05)
+        except Exception as e:
+            yield f"Error: {str(e)}".encode()
+
+        yield b"</pre></p></body></html>"
+
+    return StreamingResponse(stream_response(), media_type="text/html")
 
 if __name__ == "__main__":
     while True:

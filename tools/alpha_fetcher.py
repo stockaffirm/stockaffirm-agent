@@ -31,6 +31,7 @@ def map_natural_to_function(query: str) -> Union[Tuple[str, str], str]:
 
 
 def fetch_alpha_data(query: str) -> str:
+    print("Calling Alpha Vantage with:", query)
     try:
         tokens = query.strip().split()
         if len(tokens) != 2:
