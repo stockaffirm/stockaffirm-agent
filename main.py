@@ -29,8 +29,7 @@ TOOLS = [
         name="FetchAlphaData",
         func=fetch_alpha_data,
         description=(
-            "Fetch Alpha Vantage financial data for a company using a symbol and report type. "
-            "MUST use this only if value is needed, not to verify if a field or attribute exist in a file, table or function"
+            "Fetch Alpha Vantage financial data for a company using a symbol"
             "MUST check OVERVIEW first in case of any doubts and no specifically in input function"
             "The output received should be interpreted. Field names will not be exact but financial acumen be used"
             "Required format: '<SYMBOL> <FUNCTION>', for example:\n"
