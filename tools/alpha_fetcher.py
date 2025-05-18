@@ -57,21 +57,14 @@ def fetch_alpha_data(query: str) -> str:
         response.raise_for_status()
         data = response.json()
 
-        # Handle empty response
+        # Handle empty or non-useful response
         if not data or all(v == "None" or v == "N/A" or v is None for v in data.values()):
             return (
                 f"⚠️ Alpha Vantage returned no usable data for '{symbol}' using function '{function}'.\n"
                 f"Partial response preview:\n{json.dumps(data, indent=2)[:800]}"
             )
 
-        if function == "OVERVIEW":
-            summary_keys = [
-                "Name", "Symbol", "Sector", "Industry",
-                "MarketCapitalization", "PERatio", "PEGRatio", "DividendYield"
-            ]
-            summary = {k: data.get(k, "N/A") for k in summary_keys}
-            return "\n".join(f"{k}: {v}" for k, v in summary.items())
-
+        # ✅ Always return full JSON
         return json.dumps(data, indent=2)
 
     except requests.exceptions.RequestException as e:

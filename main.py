@@ -67,6 +67,7 @@ TOOLS = [
             "This tool MUST be used when the question includes phrases like 'in our data', 'from our database', or "
             "'based on our records'. It returns a dictionary mapping field names to API type or table names."
             "The output received should be interpreted. Field names will not be exact but financial acumen be used"
+            "match the input or field requested to the closest in the output of this tool"
             "ALWAYS follow with:\n"
             "Action: FieldMapper\n"
             "Action Input: 'fieldname'\n"
